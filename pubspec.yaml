@@ -60,6 +60,7 @@ dependencies:
 
   flutter_ringtone_player: ^4.0.0+3
   firebase_app_check: ^0.3.2+10
+  device_info_plus: ^12.3.0
 
 dev_dependencies:
   flutter_test:

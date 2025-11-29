@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class PermissionsScreen extends StatefulWidget {
   final VoidCallback onPermissionsGranted;
@@ -13,14 +15,29 @@ class PermissionsScreen extends StatefulWidget {
 class _PermissionsScreenState extends State<PermissionsScreen> {
   final Map<Permission, bool> _permissionStatus = {};
   bool _isRequesting = false;
+  int _androidSdkInt = 0;
 
   @override
   void initState() {
     super.initState();
-    _checkPermissions();
+    _initDeviceInfo();
   }
 
-  Future<void> _checkPermissions() async {
+  Future<void> _initDeviceInfo() async {
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      if (mounted) {
+        setState(() {
+          _androidSdkInt = androidInfo.version.sdkInt;
+        });
+        _checkPermissions();
+      }
+    } else {
+      _checkPermissions();
+    }
+  }
+
+  List<Permission> get _requiredPermissions {
     final permissions = [
       Permission.location,
       Permission.locationAlways,
@@ -29,14 +46,34 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
       Permission.sms,
       Permission.notification,
       Permission.microphone,
-      Permission.storage,
     ];
 
-    for (var permission in permissions) {
+    if (Platform.isAndroid) {
+      if (_androidSdkInt >= 33) {
+        // Android 13+ (API 33+)
+        permissions.add(Permission.photos);
+        permissions.add(Permission.videos);
+        permissions.add(Permission.audio);
+      } else {
+        // Android 12 and below
+        permissions.add(Permission.storage);
+      }
+    } else {
+      // iOS and others
+      permissions.add(Permission.storage);
+    }
+
+    return permissions;
+  }
+
+  Future<void> _checkPermissions() async {
+    for (var permission in _requiredPermissions) {
       final status = await permission.status;
-      setState(() {
-        _permissionStatus[permission] = status.isGranted;
-      });
+      if (mounted) {
+        setState(() {
+          _permissionStatus[permission] = status.isGranted;
+        });
+      }
     }
   }
 
@@ -50,8 +87,18 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
       Permission.phone,
       Permission.sms,
       Permission.microphone,
-      Permission.storage,
     ];
+
+    // Add storage/media permissions based on version
+    if (Platform.isAndroid) {
+      if (_androidSdkInt >= 33) {
+        permissions.add(Permission.photos);
+        permissions.add(Permission.videos);
+        permissions.add(Permission.audio);
+      } else {
+        permissions.add(Permission.storage);
+      }
+    }
 
     // Check for permanently denied permissions first
     final permanentlyDenied = <Permission>[];
@@ -99,8 +146,25 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
 
   bool _allCriticalPermissionsGranted() {
     // Location and notification are critical
-    return (_permissionStatus[Permission.location] ?? false) &&
+    bool basic =
+        (_permissionStatus[Permission.location] ?? false) &&
         (_permissionStatus[Permission.notification] ?? false);
+
+    // Check storage/media
+    bool storage = false;
+    if (Platform.isAndroid && _androidSdkInt >= 33) {
+      // For Android 13+, consider storage granted if at least one media type is allowed
+      // or if user doesn't strictly need all of them. Let's be lenient.
+      storage =
+          (_permissionStatus[Permission.photos] ?? false) ||
+          (_permissionStatus[Permission.videos] ?? false) ||
+          (_permissionStatus[Permission.audio] ?? false);
+    } else {
+      storage = _permissionStatus[Permission.storage] ?? false;
+    }
+
+    // We make storage mandatory as requested
+    return basic && storage;
   }
 
   Future<void> _requestSinglePermission(Permission permission) async {
@@ -135,12 +199,6 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
               duration: const Duration(seconds: 1),
             ),
           );
-        }
-
-        // Check if all critical permissions are now granted
-        if (_allCriticalPermissionsGranted()) {
-          // Optional: Auto-continue if all critical permissions granted
-          // widget.onPermissionsGranted();
         }
       }
     }
@@ -272,13 +330,31 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                         permission: Permission.microphone,
                         isRequired: false,
                       ),
-                      _buildPermissionTile(
-                        icon: Icons.storage,
-                        title: 'Storage',
-                        description: 'Save audio recordings',
-                        permission: Permission.storage,
-                        isRequired: false,
-                      ),
+                      // Conditional Storage UI
+                      if (Platform.isAndroid && _androidSdkInt >= 33) ...[
+                        _buildPermissionTile(
+                          icon: Icons.image,
+                          title: 'Photos & Videos',
+                          description: 'Save evidence',
+                          permission: Permission.photos,
+                          isRequired: false,
+                        ),
+                        _buildPermissionTile(
+                          icon: Icons.audiotrack,
+                          title: 'Music & Audio',
+                          description: 'Save audio recordings',
+                          permission: Permission.audio,
+                          isRequired: false,
+                        ),
+                      ] else ...[
+                        _buildPermissionTile(
+                          icon: Icons.storage,
+                          title: 'Storage',
+                          description: 'Save audio recordings',
+                          permission: Permission.storage,
+                          isRequired: false,
+                        ),
+                      ],
                     ],
                   ),
                 ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
@@ -492,7 +494,35 @@ class _HomeScreenState extends State<HomeScreen> {
     final locationStatus = await Permission.location.status;
     final notificationStatus = await Permission.notification.status;
 
-    if (!locationStatus.isGranted || !notificationStatus.isGranted) {
+    // Check storage/media permissions
+    bool storageGranted = false;
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      if (androidInfo.version.sdkInt >= 33) {
+        final photos = await Permission.photos.status;
+        final videos = await Permission.videos.status;
+        final audio = await Permission.audio.status;
+        storageGranted =
+            photos.isGranted || videos.isGranted || audio.isGranted;
+      } else {
+        final storage = await Permission.storage.status;
+        storageGranted = storage.isGranted;
+      }
+    } else {
+      // iOS etc
+      storageGranted = await Permission.storage.isGranted;
+    }
+
+    // We can decide if storage is mandatory. For now, let's keep it as:
+    // If location or notification is missing, OR if storage is missing (optional but recommended),
+    // we show the screen. But usually we only force critical ones.
+    // Let's stick to forcing Location & Notification as critical,
+    // but if the user hasn't granted storage yet, we might want to prompt them?
+    // The user asked to "ask for storage permission", so we should probably include it in the check.
+
+    if (!locationStatus.isGranted ||
+        !notificationStatus.isGranted ||
+        !storageGranted) {
       if (!mounted) return;
       Navigator.push(
         context,
@@ -528,7 +558,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GradientScaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Women Safety Analytics'),
+        title: const Text('Safety Guardian'),
         actions: [
           _buildServerStatusChip(),
           const SizedBox(width: 8),

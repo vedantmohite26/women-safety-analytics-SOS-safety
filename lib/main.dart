@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         Provider<FirestoreService>(create: (_) => FirestoreService()),
       ],
       child: MaterialApp(
-        title: 'Women Safety Analytics',
+        title: 'Safety Guardian',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const SplashScreen(),

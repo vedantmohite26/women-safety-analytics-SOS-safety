@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // App Title
               Text(
-                'Women Safety\nAnalytics',
+                'Safety Guardian',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,

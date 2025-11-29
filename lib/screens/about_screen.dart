@@ -86,7 +86,7 @@ class _AboutScreenState extends State<AboutScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Women Safety Analytics',
+                      'Safety Guardian',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
