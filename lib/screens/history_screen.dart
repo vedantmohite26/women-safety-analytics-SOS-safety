@@ -11,16 +11,16 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-    final userId = authService.userId;
+    final username = authService.username;
 
     return GradientScaffold(
       appBar: AppBar(title: const Text('Alert History')),
-      body: userId == null
+      body: username == null
           ? const Center(child: Text('Please sign in to view history'))
           : StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('sos_alerts')
-                  .where('userId', isEqualTo: userId)
+                  .where('username', isEqualTo: username)
                   // .orderBy('timestamp', descending: true) // Temporarily disabled to fix index error
                   .limit(50)
                   .snapshots(),

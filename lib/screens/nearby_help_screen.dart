@@ -27,7 +27,9 @@ class _NearbyHelpScreenState extends State<NearbyHelpScreen> {
   Future<void> _getCurrentLocation() async {
     try {
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       setState(() {
         _currentPosition = position;
@@ -204,7 +206,7 @@ class _NearbyHelpScreenState extends State<NearbyHelpScreen> {
 
       // 2. Also create an SOS alert
       await firestoreService.addSOSAlert(
-        userId: authService.userId!,
+        username: username,
         latitude: _currentPosition!.latitude,
         longitude: _currentPosition!.longitude,
       );

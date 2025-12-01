@@ -108,13 +108,15 @@ class _SOSAlertScreenState extends State<SOSAlertScreen>
 
     try {
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       if (authService.userId != null) {
         // 1. Create SOS Alert in Firestore
         await firestoreService.addSOSAlert(
-          userId: authService.userId!,
+          username: authService.username ?? 'Unknown',
           latitude: position.latitude,
           longitude: position.longitude,
         );

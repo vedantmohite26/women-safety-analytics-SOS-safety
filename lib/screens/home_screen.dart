@@ -393,7 +393,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (authService.userId != null) {
         try {
           final position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high,
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+            ),
           );
           await firestoreService.updateUserLocation(
             authService.userId!,
@@ -542,7 +544,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final position = await Geolocator.getCurrentPosition();
       final url =
           'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}';
-      await Share.share('Tracking my live location: $url');
+      await SharePlus.instance.share(
+        ShareParams(text: 'Tracking my live location: $url'),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(

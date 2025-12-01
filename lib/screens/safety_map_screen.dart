@@ -90,7 +90,9 @@ class _SafetyMapScreenState extends State<SafetyMapScreen> {
   Future<void> _getCurrentLocation() async {
     try {
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       if (!mounted) return;
       setState(() {

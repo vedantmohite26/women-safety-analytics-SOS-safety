@@ -9,18 +9,18 @@ import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 
-import 'package:firebase_app_check/firebase_app_check.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize Firebase (assumes google-services.json is present)
   await Firebase.initializeApp();
 
-  // Initialize App Check
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
-    appleProvider: AppleProvider.appAttest,
-  );
+  // Initialize App Check - Commented out due to API version incompatibility
+  // TODO: Update to correct firebase_app_check API
+  // await FirebaseAppCheck.instance.activate(
+  //   providerWeb: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+  //   providerAndroid: AndroidAppCheckProvider.debug(),
+  //   providerApple: AppleAppCheckProvider.appAttest(),
+  // );
   // Run the app
   runApp(const MyApp());
 }

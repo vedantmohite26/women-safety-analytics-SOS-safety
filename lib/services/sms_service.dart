@@ -58,7 +58,7 @@ class SMSService {
 
       // Fallback to Share sheet if no contacts or SMS launch fails
       debugPrint('Falling back to Share sheet');
-      await Share.share(message, subject: '🚨 EMERGENCY SOS ALERT');
+      await SharePlus.instance.share(ShareParams(text: message));
     } catch (e) {
       debugPrint('Error sharing SOS alert: $e');
     }

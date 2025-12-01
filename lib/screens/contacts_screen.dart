@@ -187,7 +187,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
     try {
       // Get current location
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       final locationUrl =

@@ -15,12 +15,12 @@ class FirestoreService {
   }
 
   Future<void> addSOSAlert({
-    required String userId,
+    required String username,
     required double latitude,
     required double longitude,
   }) async {
     await _db.collection('sos_alerts').add({
-      'userId': userId,
+      'username': username,
       'location': GeoPoint(latitude, longitude),
       'timestamp': FieldValue.serverTimestamp(),
       'status': 'active',
